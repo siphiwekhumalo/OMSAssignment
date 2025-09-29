@@ -165,62 +165,45 @@ export default function UploadPage() {
               />
 
               {/* Processing Method Selection */}
-              <FormField
-                control={form.control}
-                name="processingMethod"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Processing Method</FormLabel>
-                    <FormControl>
-                      <div className="space-y-3">
-                        <div className="flex items-start space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-accent transition-colors">
-                          <input
-                            type="radio"
-                            id="standard"
-                            name="processingMethod"
-                            value="standard"
-                            checked={field.value === "standard"}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                field.onChange("standard");
-                              }
-                            }}
-                            className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
-                          />
-                          <Label htmlFor="standard" className="flex-1 cursor-pointer" data-testid="radio-standard">
-                            <div className="font-medium">Standard Extraction</div>
-                            <div className="text-sm text-muted-foreground">
-                              Uses Tesseract.js for images and pdfjs-dist for PDFs. Fast and reliable for basic text extraction.
-                            </div>
-                          </Label>
-                        </div>
-                        <div className="flex items-start space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-accent transition-colors">
-                          <input
-                            type="radio"
-                            id="ai"
-                            name="processingMethod"
-                            value="ai"
-                            checked={field.value === "ai"}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                field.onChange("ai");
-                              }
-                            }}
-                            className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
-                          />
-                          <Label htmlFor="ai" className="flex-1 cursor-pointer" data-testid="radio-ai">
-                            <div className="font-medium">AI Extraction</div>
-                            <div className="text-sm text-muted-foreground">
-                              Uses OpenAI for enhanced text extraction with better accuracy and context understanding.
-                            </div>
-                          </Label>
-                        </div>
+              <div>
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Processing Method</label>
+                <div className="space-y-3 mt-2">
+                  <div className="flex items-start space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-accent transition-colors">
+                    <input
+                      type="radio"
+                      id="standard"
+                      name="processingMethod"
+                      value="standard"
+                      checked={form.watch("processingMethod") === "standard"}
+                      onChange={() => form.setValue("processingMethod", "standard")}
+                      className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
+                    />
+                    <Label htmlFor="standard" className="flex-1 cursor-pointer" data-testid="radio-standard">
+                      <div className="font-medium">Standard Extraction</div>
+                      <div className="text-sm text-muted-foreground">
+                        Uses Tesseract.js for images and pdfjs-dist for PDFs. Fast and reliable for basic text extraction.
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    </Label>
+                  </div>
+                  <div className="flex items-start space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-accent transition-colors">
+                    <input
+                      type="radio"
+                      id="ai"
+                      name="processingMethod"
+                      value="ai"
+                      checked={form.watch("processingMethod") === "ai"}
+                      onChange={() => form.setValue("processingMethod", "ai")}
+                      className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
+                    />
+                    <Label htmlFor="ai" className="flex-1 cursor-pointer" data-testid="radio-ai">
+                      <div className="font-medium">AI Extraction</div>
+                      <div className="text-sm text-muted-foreground">
+                        Uses OpenAI for enhanced text extraction with better accuracy and context understanding.
+                      </div>
+                    </Label>
+                  </div>
+                </div>
+              </div>
 
               {/* Submit Button */}
               <div className="pt-4">
