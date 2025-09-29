@@ -18,8 +18,10 @@ export const RadioGroup = forwardRef(({ className, onValueChange, defaultValue, 
 RadioGroup.displayName = "RadioGroup";
 
 export const RadioGroupItem = forwardRef(({ className, children, value, ...props }, ref) => {
-  const context = useContext(RadioGroupContext) || {};
-  const { onValueChange, name, value: groupValue } = context;
+  const context = useContext(RadioGroupContext);
+  const onValueChange = context?.onValueChange;
+  const name = context?.name || "radio-group";
+  const groupValue = context?.value;
   
   return (
     <input
