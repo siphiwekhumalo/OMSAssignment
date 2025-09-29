@@ -5,7 +5,27 @@ import { Label } from "@/components/ui/label";
 const FormFieldContext = createContext({});
 const FormItemContext = createContext({});
 
-export function Form({ children, ...props }) {
+export function Form({ 
+  children, 
+  // Filter out React Hook Form props that shouldn't go to DOM
+  formState,
+  subscribe,
+  trigger,
+  register,
+  watch,
+  reset,
+  unregister,
+  handleSubmit,
+  setValue,
+  getValues,
+  resetField,
+  clearErrors,
+  setError,
+  setFocus,
+  getFieldState,
+  formControl,
+  ...props 
+}) {
   return <form {...props}>{children}</form>;
 }
 
