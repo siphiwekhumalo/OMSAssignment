@@ -17,7 +17,8 @@ export const RadioGroup = forwardRef(({ className, onValueChange, defaultValue, 
 RadioGroup.displayName = "RadioGroup";
 
 export const RadioGroupItem = forwardRef(({ className, children, value, ...props }, ref) => {
-  const { onValueChange, name } = useContext(RadioGroupContext);
+  const context = useContext(RadioGroupContext) || {};
+  const { onValueChange, name } = context;
   
   return (
     <input
@@ -30,7 +31,7 @@ export const RadioGroupItem = forwardRef(({ className, children, value, ...props
       name={name}
       value={value}
       onChange={(e) => {
-        if (e.target && onValueChange) {
+        if (e.target && e.target.value !== undefined && onValueChange) {
           onValueChange(e.target.value);
         }
       }}
