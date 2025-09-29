@@ -12,7 +12,7 @@ import OpenAI from "openai";
  */
 
 // Initialize OpenAI client with API key from environment
-// Note: Using gpt-5 model (released August 7, 2025) for enhanced accuracy
+// Note: Using gpt-5 model as specified in the integration blueprint
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 /**
@@ -49,10 +49,36 @@ export async function extractWithOpenAI(filePath, mimeType) {
       throw new Error(`Unsupported file type for AI extraction: ${mimeType}`);
     }
   } catch (error) {
-    // Centralized error handling with detailed logging for debugging
+    // Enhanced error handling with proper OpenAI SDK error structure detection
     console.error('OpenAI extraction error:', error);
-    // Ensure error message is always a string for consistent frontend handling
-    throw new Error(`AI extraction failed: ${error instanceof Error ? error.message : String(error)}`);
+    
+    // Handle OpenAI SDK errors using structured properties when available
+    if (error && typeof error === 'object') {
+      // Check for OpenAI SDK error structure first
+      if (error.status || error.type || error.code) {
+        // Quota/rate limit errors (429 status or specific types)
+        if (error.status === 429 || error.type === 'insufficient_quota' || error.code === 'rate_limit_exceeded') {
+          throw new Error('AI service quota exceeded. Please check your OpenAI account usage limits or try using Standard Extraction instead.');
+        }
+        
+        // Authentication errors (401 status or auth-related types)
+        if (error.status === 401 || error.type === 'invalid_request_error' || error.code === 'invalid_api_key') {
+          throw new Error('AI service authentication failed. Please check your OpenAI API key configuration.');
+        }
+        
+        // Service unavailable errors (500+ status codes)
+        if (error.status >= 500) {
+          throw new Error('AI service temporarily unavailable. Please try Standard Extraction or try again later.');
+        }
+      }
+      
+      // Fallback to message inspection for other error types
+      const errorMessage = error.message || String(error);
+      throw new Error(`AI extraction failed: ${errorMessage}. Try using Standard Extraction as an alternative.`);
+    }
+    
+    // Handle non-object errors
+    throw new Error(`AI extraction failed: ${String(error)}. Try using Standard Extraction as an alternative.`);
   }
 }
 
@@ -233,8 +259,24 @@ async function extractImageWithAI(imagePath, mimeType) {
       rawText,
     };
   } catch (error) {
+    // Enhanced error handling for image AI extraction using structured error detection
     console.error('Image AI extraction error:', error);
-    throw error;
+    
+    // Handle OpenAI SDK errors using structured properties when available
+    if (error && typeof error === 'object') {
+      // Check for structured error properties first
+      if (error.status === 429 || error.type === 'insufficient_quota') {
+        throw new Error('AI service quota exceeded for image processing. Please check your OpenAI account limits.');
+      }
+      
+      if (error.status === 400 || error.type === 'invalid_request_error') {
+        throw new Error('Invalid image format for AI processing. Please ensure the image is clear and readable.');
+      }
+    }
+    
+    // Re-throw with context for upstream error handling
+    const errorMessage = (error && error.message) ? error.message : String(error);
+    throw new Error(`AI image extraction failed: ${errorMessage}`);
   }
 }
 
@@ -293,8 +335,23 @@ async function extractTextWithAI(text) {
       rawText: text,  // Original input text for reference
     };
   } catch (error) {
-    // Log error details and re-throw for upstream error handling
+    // Enhanced error handling for text AI extraction using structured error detection
     console.error('Text AI extraction error:', error);
-    throw error;
+    
+    // Handle OpenAI SDK errors using structured properties when available
+    if (error && typeof error === 'object') {
+      // Check for structured error properties first
+      if (error.status === 429 || error.type === 'insufficient_quota') {
+        throw new Error('AI service quota exceeded for text processing. Please check your OpenAI account limits.');
+      }
+      
+      if (error.status === 400 && (error.code === 'context_length_exceeded' || error.type === 'invalid_request_error')) {
+        throw new Error('Text content too large for AI processing. Please try with a smaller document.');
+      }
+    }
+    
+    // Re-throw with context for upstream error handling
+    const errorMessage = (error && error.message) ? error.message : String(error);
+    throw new Error(`AI text extraction failed: ${errorMessage}`);
   }
 }
