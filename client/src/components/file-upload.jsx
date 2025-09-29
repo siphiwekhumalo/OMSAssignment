@@ -2,16 +2,10 @@ import { useCallback, useState } from "react";
 import { CloudUpload, File, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface FileUploadProps {
-  onFileSelect: (file: File) => void;
-  selectedFile: File | null;
-  onFileRemove: () => void;
-}
-
-export default function FileUpload({ onFileSelect, selectedFile, onFileRemove }: FileUploadProps) {
+export default function FileUpload({ onFileSelect, selectedFile, onFileRemove }) {
   const [dragActive, setDragActive] = useState(false);
 
-  const handleDrag = useCallback((e: React.DragEvent) => {
+  const handleDrag = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
@@ -21,7 +15,7 @@ export default function FileUpload({ onFileSelect, selectedFile, onFileRemove }:
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
@@ -34,7 +28,7 @@ export default function FileUpload({ onFileSelect, selectedFile, onFileRemove }:
     }
   }, [onFileSelect]);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -44,7 +38,7 @@ export default function FileUpload({ onFileSelect, selectedFile, onFileRemove }:
     }
   }, [onFileSelect]);
 
-  const validateFile = (file: File): boolean => {
+  const validateFile = (file) => {
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
     const maxSize = 10 * 1024 * 1024; // 10MB
     
@@ -61,7 +55,7 @@ export default function FileUpload({ onFileSelect, selectedFile, onFileRemove }:
     return true;
   };
 
-  const formatFileSize = (bytes: number): string => {
+  const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];

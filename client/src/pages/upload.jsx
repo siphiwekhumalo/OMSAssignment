@@ -13,15 +13,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { processDocumentRequestSchema } from "@shared/schema";
-import type { ProcessDocumentRequest } from "@shared/schema";
 
 export default function UploadPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const form = useForm<ProcessDocumentRequest>({
+  const form = useForm({
     resolver: zodResolver(processDocumentRequestSchema),
     defaultValues: {
       firstName: "",
@@ -32,7 +31,7 @@ export default function UploadPage() {
   });
 
   const processMutation = useMutation({
-    mutationFn: async (data: ProcessDocumentRequest & { file: File }) => {
+    mutationFn: async (data) => {
       const formData = new FormData();
       formData.append("file", data.file);
       formData.append("firstName", data.firstName);
@@ -62,7 +61,7 @@ export default function UploadPage() {
       sessionStorage.setItem("lastProcessingResult", JSON.stringify(data));
       setLocation("/results");
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       setIsProcessing(false);
       toast({
         title: "Processing failed",
@@ -72,7 +71,7 @@ export default function UploadPage() {
     },
   });
 
-  const onSubmit = (data: ProcessDocumentRequest) => {
+  const onSubmit = (data) => {
     if (!selectedFile) {
       toast({
         title: "File required",
@@ -193,7 +192,7 @@ export default function UploadPage() {
                           <Label htmlFor="ai" className="flex-1 cursor-pointer" data-testid="radio-ai">
                             <div className="font-medium">AI Extraction</div>
                             <div className="text-sm text-muted-foreground">
-                              Uses Gemini AI for enhanced text extraction with better accuracy and context understanding.
+                              Uses OpenAI for enhanced text extraction with better accuracy and context understanding.
                             </div>
                           </Label>
                         </div>

@@ -6,18 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import type { ProcessedDocument } from "@shared/schema";
-
-interface ProcessingResult extends ProcessedDocument {
-  aiExtractedData?: {
-    structuredData?: Record<string, any>;
-    rawText?: string;
-  };
-}
 
 export default function ResultsPage() {
   const { toast } = useToast();
-  const [currentResult, setCurrentResult] = useState<ProcessingResult | null>(null);
+  const [currentResult, setCurrentResult] = useState(null);
 
   // Check for result in sessionStorage first
   useEffect(() => {
@@ -73,7 +65,7 @@ export default function ResultsPage() {
     }
   };
 
-  const formatProcessingTime = (timeMs: number | null | undefined): string => {
+  const formatProcessingTime = (timeMs) => {
     if (!timeMs) return "N/A";
     return timeMs < 1000 ? `${timeMs}ms` : `${(timeMs / 1000).toFixed(1)}s`;
   };
@@ -206,7 +198,7 @@ export default function ResultsPage() {
                 </h3>
                 <div className="space-y-4">
                   {/* Structured Data */}
-                  {result.aiExtractedData?.structuredData && (
+                  {result.aiExtractedData?.structuredData && Object.keys(result.aiExtractedData.structuredData).length > 0 && (
                     <div className="space-y-3">
                       <h4 className="font-medium text-sm">Structured Information</h4>
                       <div className="space-y-2" data-testid="ai-structured-data">
