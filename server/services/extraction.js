@@ -19,14 +19,38 @@ export async function extractTextFromDocument(filePath, mimeType) {
 
 async function extractTextFromPDF(filePath) {
   try {
-    // Dynamic import to avoid the test file issue with pdf-parse
-    const { default: pdfParse } = await import('pdf-parse');
+    console.log('Attempting PDF extraction from:', filePath);
     const pdfBuffer = await fs.readFile(filePath);
-    const data = await pdfParse(pdfBuffer);
+    console.log('PDF buffer size:', pdfBuffer.length, 'bytes');
+    
+    // Import pdf-parse with better error handling
+    const pdfParseModule = await import('pdf-parse').catch(error => {
+      console.error('pdf-parse import failed:', error);
+      return null;
+    });
+    
+    if (!pdfParseModule) {
+      throw new Error('PDF parsing library not available');
+    }
+    
+    const pdfParse = pdfParseModule.default || pdfParseModule;
+    
+    // Parse the PDF with basic options
+    const data = await pdfParse(pdfBuffer).catch(parseError => {
+      console.error('PDF parsing failed:', parseError);
+      throw new Error(`PDF parsing failed: ${parseError.message}`);
+    });
+    
+    console.log('PDF parsing successful, text length:', data.text?.length || 0);
+    
+    if (!data.text || data.text.trim().length === 0) {
+      throw new Error('No text content found in PDF');
+    }
+    
     return data.text.trim();
   } catch (error) {
     console.error('PDF extraction error:', error);
-    throw new Error('Failed to extract text from PDF');
+    throw new Error(`Failed to extract text from PDF: ${error.message}`);
   }
 }
 
