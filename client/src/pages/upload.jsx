@@ -172,23 +172,32 @@ export default function UploadPage() {
                   <FormItem>
                     <FormLabel>Processing Method</FormLabel>
                     <FormControl>
-                      <RadioGroup
-                        name="processingMethod"
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        className="space-y-3"
-                      >
+                      <RadioGroup className="space-y-3">
                         <div className="flex items-start space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-accent transition-colors">
-                          <RadioGroupItem value="standard" id="standard" className="mt-1" />
+                          <RadioGroupItem 
+                            value="standard" 
+                            id="standard" 
+                            className="mt-1"
+                            name="processingMethod"
+                            checked={field.value === "standard"}
+                            onChange={(e) => field.onChange(e.target.value)}
+                          />
                           <Label htmlFor="standard" className="flex-1 cursor-pointer" data-testid="radio-standard">
                             <div className="font-medium">Standard Extraction</div>
                             <div className="text-sm text-muted-foreground">
-                              Uses Tesseract.js for images and pdf-parse for PDFs. Fast and reliable for basic text extraction.
+                              Uses Tesseract.js for images and pdfjs-dist for PDFs. Fast and reliable for basic text extraction.
                             </div>
                           </Label>
                         </div>
                         <div className="flex items-start space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-accent transition-colors">
-                          <RadioGroupItem value="ai" id="ai" className="mt-1" />
+                          <RadioGroupItem 
+                            value="ai" 
+                            id="ai" 
+                            className="mt-1"
+                            name="processingMethod"
+                            checked={field.value === "ai"}
+                            onChange={(e) => field.onChange(e.target.value)}
+                          />
                           <Label htmlFor="ai" className="flex-1 cursor-pointer" data-testid="radio-ai">
                             <div className="font-medium">AI Extraction</div>
                             <div className="text-sm text-muted-foreground">
