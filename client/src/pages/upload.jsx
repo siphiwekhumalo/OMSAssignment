@@ -173,6 +173,7 @@ export default function UploadPage() {
                     <FormLabel>Processing Method</FormLabel>
                     <FormControl>
                       <RadioGroup
+                        name="processingMethod"
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                         className="space-y-3"
