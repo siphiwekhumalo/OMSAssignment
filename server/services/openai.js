@@ -9,7 +9,7 @@ export async function extractWithOpenAI(filePath, mimeType) {
     if (mimeType === 'application/pdf') {
       // For PDFs, we need to extract text first and then process with AI
       // Since OpenAI can't directly process PDFs, we'll use standard extraction first
-      const pdfParse = require('pdf-parse');
+      const { default: pdfParse } = await import('pdf-parse');
       const pdfBuffer = fs.readFileSync(filePath);
       const data = await pdfParse(pdfBuffer);
       return await extractTextWithAI(data.text);
