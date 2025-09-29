@@ -15,30 +15,76 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { processDocumentRequestSchema } from "@shared/schema";
 
+/**
+ * Document Upload and Processing Page
+ * 
+ * Main application interface for document upload and processing. Provides a
+ * comprehensive form for user data collection, file upload, processing method
+ * selection, and handles both validation and submission with detailed error handling.
+ * 
+ * Features:
+ * - File upload with drag-and-drop support and validation
+ * - Personal information form with real-time validation
+ * - Processing method selection (Standard OCR vs AI extraction)
+ * - Comprehensive error handling with user-friendly messages
+ * - Progress indicators and loading states
+ * - Responsive design with accessibility support
+ * 
+ * @component
+ * @returns {JSX.Element} Complete upload page interface
+ * 
+ * @example
+ * // Used in main App router
+ * <Route path="/" component={UploadPage} />
+ */
 export default function UploadPage() {
+  // Navigation hook for programmatic routing
   const [, setLocation] = useLocation();
+  
+  // Toast notifications for user feedback
   const { toast } = useToast();
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
-  const [fileError, setFileError] = useState(null);
+  
+  // Component state management
+  const [selectedFile, setSelectedFile] = useState(null);       // Currently selected file for upload
+  const [isProcessing, setIsProcessing] = useState(false);     // Processing state for loading indicators
+  const [submitError, setSubmitError] = useState(null);        // Form submission errors
+  const [fileError, setFileError] = useState(null);           // File validation errors
 
+  // Form management with validation using react-hook-form and Zod
   const form = useForm({
-    resolver: zodResolver(processDocumentRequestSchema),
+    resolver: zodResolver(processDocumentRequestSchema), // Validation schema from shared/schema.js
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-      processingMethod: "standard",
+      firstName: "",           // User's first name
+      lastName: "",            // User's last name  
+      dateOfBirth: "",         // Birth date (YYYY-MM-DD format)
+      processingMethod: "standard", // Default to standard extraction method
     },
   });
 
+  /**
+   * Document processing mutation using TanStack Query
+   * 
+   * Handles the complete document upload and processing workflow:
+   * 1. Clears previous error states for fresh submission
+   * 2. Creates FormData with file and form fields
+   * 3. Submits to backend API with proper error handling
+   * 4. Parses structured error responses for user feedback
+   * 
+   * @param {Object} data - Form data including file and user information
+   * @param {File} data.file - Selected document file
+   * @param {string} data.firstName - User's first name
+   * @param {string} data.lastName - User's last name  
+   * @param {string} data.dateOfBirth - Date of birth (YYYY-MM-DD)
+   * @param {string} data.processingMethod - Processing method ("standard" | "ai")
+   * @returns {Promise<Object>} Processing results from backend
+   */
   const processMutation = useMutation({
     mutationFn: async (data) => {
-      // Clear previous errors
+      // Reset error states for fresh submission attempt
       setSubmitError(null);
       setFileError(null);
       
+      // Create FormData for multipart file upload
       const formData = new FormData();
       formData.append("file", data.file);
       formData.append("firstName", data.firstName);
@@ -46,32 +92,38 @@ export default function UploadPage() {
       formData.append("dateOfBirth", data.dateOfBirth);
       formData.append("processingMethod", data.processingMethod);
 
+      // Submit to backend API
       const response = await fetch("/api/process-document", {
         method: "POST",
         body: formData,
       });
 
+      // Handle non-success responses with detailed error parsing
       if (!response.ok) {
         const errorData = await response.json();
         
-        // Create detailed error object
+        // Create enhanced error object with backend details
         const error = new Error(errorData.error || errorData.message || "Failed to process document");
-        error.details = errorData.details;
-        error.field = errorData.field;
-        error.statusCode = response.status;
+        error.details = errorData.details;        // Additional error context
+        error.field = errorData.field;            // Field-specific error targeting
+        error.statusCode = response.status;       // HTTP status code
         
         throw error;
       }
 
       return response.json();
     },
+    // Success handler - processing completed successfully
     onSuccess: (data) => {
       setIsProcessing(false);
+      
+      // Show success notification to user
       toast({
         title: "Document processed successfully!",
         description: "Redirecting to results page...",
       });
-      // Store result in sessionStorage for display
+      
+      // Store processing results in sessionStorage for results page display
       sessionStorage.setItem("lastProcessingResult", JSON.stringify(data));
       setLocation("/results");
     },
