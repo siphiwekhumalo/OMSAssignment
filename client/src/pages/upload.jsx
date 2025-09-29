@@ -100,8 +100,7 @@ export default function UploadPage() {
             </p>
           </div>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Form {...form} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* File Upload Section */}
               <FileUpload
                 onFileSelect={setSelectedFile}
@@ -217,7 +216,6 @@ export default function UploadPage() {
                   </span>
                 </Button>
               </div>
-            </form>
           </Form>
 
           {/* Processing Status */}

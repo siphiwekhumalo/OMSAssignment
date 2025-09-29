@@ -28,7 +28,7 @@ export const RadioGroupItem = forwardRef(({ className, children, value, ...props
       )}
       ref={ref}
       value={value}
-      onChange={() => onValueChange?.(value)}
+      onChange={(e) => onValueChange?.(e.target.value)}
       {...props}
     />
   );

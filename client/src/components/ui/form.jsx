@@ -24,15 +24,28 @@ export function Form({
   setFocus,
   getFieldState,
   formControl,
+  // Extract form-specific props
+  onSubmit,
+  className,
   ...props 
 }) {
-  return <form {...props}>{children}</form>;
+  return (
+    <form 
+      onSubmit={onSubmit} 
+      className={className}
+      {...props}
+    >
+      {children}
+    </form>
+  );
 }
 
 export function FormField({ control, name, render, ...props }) {
   return (
     <FormFieldContext.Provider value={{ name, ...props }}>
-      {render({ field: { name, ...control?.register(name) } })}
+      {render({ 
+        field: control.register ? control.register(name) : { name }
+      })}
     </FormFieldContext.Provider>
   );
 }
