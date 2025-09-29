@@ -3,7 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
 import { storage } from "./storage.js";
-import { processDocumentRequestSchema, fileValidationSchema } from "../shared/schema.js";
+import { processDocumentRequestSchema, fileValidationSchema, calculateAge, generateFullName } from "../shared/schema.js";
 import { extractTextFromDocument } from "./services/extraction.js";
 import { extractWithOpenAI } from "./services/openai.js";
 
@@ -23,18 +23,7 @@ const upload = multer({
   },
 });
 
-function calculateAge(dateOfBirth) {
-  const birthDate = new Date(dateOfBirth);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  
-  return age;
-}
+// calculateAge function now imported from shared/schema.js
 
 export async function registerRoutes(app) {
   // Document processing endpoint
@@ -96,7 +85,7 @@ export async function registerRoutes(app) {
         let age, fullName;
         try {
           age = calculateAge(dateOfBirth);
-          fullName = `${firstName} ${lastName}`;
+          fullName = generateFullName(firstName, lastName);
           
           // Validate calculated age
           if (age < 5 || age > 120) {

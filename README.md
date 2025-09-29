@@ -17,7 +17,6 @@ A full-stack web application for extracting text from PDF documents and images u
 
 - **Node.js** 20+ (recommended: use the latest LTS version)
 - **npm** or **yarn** package manager
-- **PostgreSQL** database (local installation or cloud service)
 - **OpenAI API Key** (required for AI-powered extraction)
 
 ## Quick Start
@@ -41,34 +40,18 @@ cp .env.example .env
 Edit `.env` with your configuration:
 
 ```env
-# Database Configuration
-DATABASE_URL=postgresql://username:password@localhost:5432/docprocessor
-
-# Session Security
-SESSION_SECRET=your-very-secure-session-secret-key-here
-
 # AI Services (OpenAI required)
 OPENAI_API_KEY=your-openai-api-key-here
 GEMINI_API_KEY=your-gemini-api-key-here  # Optional
+
+# Session Security (optional - for enhanced security)
+SESSION_SECRET=your-very-secure-session-secret-key-here
 
 # Development
 NODE_ENV=development
 ```
 
-### 3. Database Setup
-
-**Option A: Local PostgreSQL**
-1. Install PostgreSQL on your system
-2. Create a database: `createdb docprocessor`
-3. Update the `DATABASE_URL` in your `.env` file
-4. Push the schema: `npm run db:push`
-
-**Option B: Cloud Database (Recommended)**
-1. Sign up for a cloud PostgreSQL service (Neon, Supabase, etc.)
-2. Copy your connection string to `DATABASE_URL` in `.env`
-3. Push the schema: `npm run db:push`
-
-### 4. Get API Keys
+### 3. Get API Keys
 
 **OpenAI API Key (Required for AI features):**
 1. Visit [OpenAI Platform](https://platform.openai.com/)
@@ -78,7 +61,7 @@ NODE_ENV=development
 
 **Note**: Without an OpenAI API key, only Standard Extraction will work.
 
-### 5. Start Development Server
+### 4. Start Development Server
 
 ```bash
 npm run dev
@@ -96,7 +79,6 @@ The application will start on:
 | `npm run build` | Build for production |
 | `npm start` | Start production server |
 | `npm run check` | Run TypeScript type checking |
-| `npm run db:push` | Push database schema changes |
 
 ## Project Structure
 
@@ -110,12 +92,11 @@ The application will start on:
 │   ├── services/          # Business logic (extraction, AI)
 │   ├── index.ts           # Server entry point
 │   ├── routes.js          # API endpoints
-│   └── storage.js         # Database interface
+│   └── storage.js         # In-memory storage interface
 ├── shared/                 # Shared types and schemas
 │   └── schema.js          # Zod validation schemas
 ├── uploads/               # File upload directory
 ├── package.json           # Dependencies and scripts
-├── drizzle.config.ts      # Database configuration
 └── docker-compose.yml     # Docker setup (optional)
 ```
 
@@ -143,7 +124,7 @@ The application will start on:
 1. **Frontend Components**: Add to `client/src/components/`
 2. **New Pages**: Add to `client/src/pages/` and register in `client/src/App.tsx`
 3. **API Routes**: Add to `server/routes.js`
-4. **Database Models**: Update `shared/schema.js` and run `npm run db:push`
+4. **Data Models**: Update validation schemas in `shared/schema.js`
 
 ### Code Style
 
@@ -157,23 +138,17 @@ The application will start on:
 
 ### Common Issues
 
-**1. Database Connection Failed**
-```bash
-# Check your DATABASE_URL format
-# PostgreSQL format: postgresql://user:password@host:port/database
-```
-
-**2. OpenAI Quota Exceeded**
+**1. OpenAI Quota Exceeded**
 - The app gracefully handles quota limits
 - Users are directed to use Standard Extraction instead
 - Check your OpenAI account billing and usage
 
-**3. File Upload Errors**
+**2. File Upload Errors**
 - Maximum file size: 10MB
 - Supported formats: PDF, JPG, JPEG, PNG
 - Check file permissions in the `uploads/` directory
 
-**4. Development Server Won't Start**
+**3. Development Server Won't Start**
 ```bash
 # Clear node_modules and reinstall
 rm -rf node_modules package-lock.json
@@ -183,7 +158,7 @@ npm install
 node --version  # Should be 20+
 ```
 
-**5. Build Errors**
+**4. Build Errors**
 ```bash
 # Run type checking
 npm run check
@@ -197,18 +172,16 @@ npm run build
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `SESSION_SECRET` | Yes | Secret key for session encryption |
 | `OPENAI_API_KEY` | Recommended | OpenAI API key for AI features |
+| `SESSION_SECRET` | No | Secret key for session encryption (optional) |
 | `NODE_ENV` | No | Environment (development/production) |
 | `GEMINI_API_KEY` | No | Google Gemini API key (future use) |
 
 ### Getting Help
 
 1. **Check Logs**: Development server shows detailed error messages
-2. **Database Issues**: Verify your `DATABASE_URL` connection
-3. **API Issues**: Test with `curl http://localhost:5000/health`
-4. **Build Problems**: Run `npm run check` for TypeScript errors
+2. **API Issues**: Test with `curl http://localhost:5000/health`
+3. **Build Problems**: Run `npm run check` for TypeScript errors
 
 ## Production Deployment
 
@@ -217,9 +190,6 @@ npm run build
 ```bash
 # Start with Docker Compose
 docker-compose up -d
-
-# Initialize database
-docker-compose exec app npm run db:push
 ```
 
 See `README.docker.md` for detailed Docker instructions.
