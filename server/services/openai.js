@@ -8,11 +8,9 @@ export async function extractWithOpenAI(filePath, mimeType) {
   try {
     if (mimeType === 'application/pdf') {
       // For PDFs, we need to extract text first and then process with AI
-      // Since OpenAI can't directly process PDFs, we'll use standard extraction first
-      const { default: pdfParse } = await import('pdf-parse');
-      const pdfBuffer = fs.readFileSync(filePath);
-      const data = await pdfParse(pdfBuffer);
-      return await extractTextWithAI(data.text);
+      // Since OpenAI can't directly process PDFs, we'll use the working PDF extraction first
+      const extractedText = await extractPDFText(filePath);
+      return await extractTextWithAI(extractedText);
     } else if (mimeType.startsWith('image/')) {
       return await extractImageWithAI(filePath, mimeType);
     } else {
@@ -21,6 +19,61 @@ export async function extractWithOpenAI(filePath, mimeType) {
   } catch (error) {
     console.error('OpenAI extraction error:', error);
     throw new Error(`AI extraction failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+async function extractPDFText(filePath) {
+  try {
+    console.log('AI: Attempting PDF text extraction from:', filePath);
+    const pdfBuffer = fs.readFileSync(filePath);
+    console.log('AI: PDF buffer size:', pdfBuffer.length, 'bytes');
+    
+    // Import pdfjs-dist legacy build for Node.js environments
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({
+      data: new Uint8Array(pdfBuffer),
+      useSystemFonts: true,
+    });
+    
+    const pdfDocument = await loadingTask.promise;
+    console.log('AI: PDF loaded successfully, pages:', pdfDocument.numPages);
+    
+    let extractedText = '';
+    
+    // Extract text from all pages
+    for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
+      try {
+        const page = await pdfDocument.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        
+        // Combine text items from the page
+        const pageText = textContent.items
+          .map(item => item.str)
+          .join(' ');
+        
+        if (pageText.trim()) {
+          extractedText += `${pageText}\n`;
+        }
+      } catch (pageError) {
+        console.error(`AI: Error extracting text from page ${pageNum}:`, pageError);
+      }
+    }
+    
+    // Clean up the extracted text
+    extractedText = extractedText.trim();
+    
+    if (!extractedText || extractedText.length === 0) {
+      throw new Error('No text content found in PDF document');
+    }
+    
+    console.log('AI: PDF text extraction successful, text length:', extractedText.length, 'characters');
+    return extractedText;
+    
+  } catch (error) {
+    console.error('AI: PDF extraction error:', error);
+    throw new Error(`Failed to extract text from PDF: ${error.message}`);
   }
 }
 

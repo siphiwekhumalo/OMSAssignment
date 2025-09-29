@@ -23,8 +23,8 @@ async function extractTextFromPDF(filePath) {
     const pdfBuffer = await fs.readFile(filePath);
     console.log('PDF buffer size:', pdfBuffer.length, 'bytes');
     
-    // Import pdfjs-dist for reliable PDF text extraction
-    const pdfjsLib = await import('pdfjs-dist');
+    // Import pdfjs-dist legacy build for Node.js environments
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
     
     // Load the PDF document
     const loadingTask = pdfjsLib.getDocument({
