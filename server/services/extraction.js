@@ -23,22 +23,50 @@ async function extractTextFromPDF(filePath) {
     const pdfBuffer = await fs.readFile(filePath);
     console.log('PDF buffer size:', pdfBuffer.length, 'bytes');
     
-    // For now, since pdf-parse has issues with test files, return a placeholder
-    // In a production environment, you would use a more robust PDF parsing solution
-    const placeholderText = `PDF Document Processing Result
-
-This is a placeholder text extraction from your PDF file.
-File size: ${pdfBuffer.length} bytes
-Processing timestamp: ${new Date().toISOString()}
-
-Note: The PDF has been successfully uploaded and processed. In a production environment, 
-this would contain the actual extracted text content from your PDF document.
-
-To enable full PDF text extraction, consider using alternative PDF processing libraries
-or cloud-based document processing services.`;
+    // Import pdfjs-dist for reliable PDF text extraction
+    const pdfjsLib = await import('pdfjs-dist');
     
-    console.log('PDF processing completed with placeholder text');
-    return placeholderText;
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({
+      data: new Uint8Array(pdfBuffer),
+      useSystemFonts: true,
+    });
+    
+    const pdfDocument = await loadingTask.promise;
+    console.log('PDF loaded successfully, pages:', pdfDocument.numPages);
+    
+    let extractedText = '';
+    
+    // Extract text from all pages
+    for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
+      try {
+        const page = await pdfDocument.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        
+        // Combine text items from the page
+        const pageText = textContent.items
+          .map(item => item.str)
+          .join(' ');
+        
+        if (pageText.trim()) {
+          extractedText += `\n--- Page ${pageNum} ---\n${pageText}\n`;
+        }
+      } catch (pageError) {
+        console.error(`Error extracting text from page ${pageNum}:`, pageError);
+        extractedText += `\n--- Page ${pageNum} ---\n[Error extracting text from this page]\n`;
+      }
+    }
+    
+    // Clean up the extracted text
+    extractedText = extractedText.trim();
+    
+    if (!extractedText || extractedText.length === 0) {
+      throw new Error('No text content found in PDF document');
+    }
+    
+    console.log('PDF text extraction successful, text length:', extractedText.length, 'characters');
+    return extractedText;
+    
   } catch (error) {
     console.error('PDF extraction error:', error);
     throw new Error(`Failed to extract text from PDF: ${error.message}`);
