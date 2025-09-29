@@ -42,9 +42,3 @@ export const processDocumentRequestSchema = z.object({
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   processingMethod: z.enum(["standard", "ai"]),
 });
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-export type ProcessedDocument = typeof processedDocuments.$inferSelect;
-export type InsertProcessedDocument = z.infer<typeof insertProcessedDocumentSchema>;
-export type ProcessDocumentRequest = z.infer<typeof processDocumentRequestSchema>;

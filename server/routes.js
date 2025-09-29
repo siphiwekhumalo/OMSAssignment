@@ -1,12 +1,11 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
+import { createServer } from "http";
 import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
-import { storage } from "./storage";
-import { processDocumentRequestSchema } from "@shared/schema";
-import { extractTextFromDocument } from "./services/extraction";
-import { extractWithGemini } from "./services/gemini";
+import { storage } from "./storage.js";
+import { processDocumentRequestSchema } from "../shared/schema.js";
+import { extractTextFromDocument } from "./services/extraction.js";
+import { extractWithOpenAI } from "./services/openai.js";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -24,7 +23,7 @@ const upload = multer({
   },
 });
 
-function calculateAge(dateOfBirth: string): number {
+function calculateAge(dateOfBirth) {
   const birthDate = new Date(dateOfBirth);
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
@@ -37,7 +36,7 @@ function calculateAge(dateOfBirth: string): number {
   return age;
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app) {
   // Document processing endpoint
   app.post('/api/process-document', upload.single('file'), async (req, res) => {
     try {
@@ -75,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If AI method is selected, also extract with AI
         if (processingMethod === 'ai') {
           try {
-            aiExtractedData = await extractWithGemini(file.path, file.mimetype);
+            aiExtractedData = await extractWithOpenAI(file.path, file.mimetype);
             rawExtractedText = aiExtractedData.rawText || standardText;
           } catch (aiError) {
             console.error('AI extraction failed:', aiError);
@@ -131,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get recent processed documents
   app.get('/api/processed-documents', async (req, res) => {
     try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const limit = req.query.limit ? parseInt(req.query.limit) : 10;
       const documents = await storage.getRecentProcessedDocuments(limit);
       res.json(documents);
     } catch (error) {

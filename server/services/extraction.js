@@ -1,9 +1,8 @@
 import { createWorker } from 'tesseract.js';
-import * as pdfParse from 'pdf-parse';
 import fs from 'fs/promises';
 import path from 'path';
 
-export async function extractTextFromDocument(filePath: string, mimeType: string): Promise<string> {
+export async function extractTextFromDocument(filePath, mimeType) {
   try {
     if (mimeType === 'application/pdf') {
       return await extractTextFromPDF(filePath);
@@ -18,8 +17,10 @@ export async function extractTextFromDocument(filePath: string, mimeType: string
   }
 }
 
-async function extractTextFromPDF(filePath: string): Promise<string> {
+async function extractTextFromPDF(filePath) {
   try {
+    // Dynamic import to avoid the test file issue with pdf-parse
+    const { default: pdfParse } = await import('pdf-parse');
     const pdfBuffer = await fs.readFile(filePath);
     const data = await pdfParse(pdfBuffer);
     return data.text.trim();
@@ -29,8 +30,8 @@ async function extractTextFromPDF(filePath: string): Promise<string> {
   }
 }
 
-async function extractTextFromImage(filePath: string): Promise<string> {
-  let worker: Tesseract.Worker | null = null;
+async function extractTextFromImage(filePath) {
+  let worker = null;
   
   try {
     worker = await createWorker('eng');
