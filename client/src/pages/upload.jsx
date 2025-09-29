@@ -172,15 +172,16 @@ export default function UploadPage() {
                   <FormItem>
                     <FormLabel>Processing Method</FormLabel>
                     <FormControl>
-                      <RadioGroup className="space-y-3">
+                      <div className="space-y-3">
                         <div className="flex items-start space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-accent transition-colors">
-                          <RadioGroupItem 
-                            value="standard" 
-                            id="standard" 
-                            className="mt-1"
+                          <input
+                            type="radio"
+                            id="standard"
                             name="processingMethod"
+                            value="standard"
                             checked={field.value === "standard"}
-                            onChange={(e) => field.onChange(e.target.value)}
+                            onChange={() => field.onChange("standard")}
+                            className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                           />
                           <Label htmlFor="standard" className="flex-1 cursor-pointer" data-testid="radio-standard">
                             <div className="font-medium">Standard Extraction</div>
@@ -190,13 +191,14 @@ export default function UploadPage() {
                           </Label>
                         </div>
                         <div className="flex items-start space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-accent transition-colors">
-                          <RadioGroupItem 
-                            value="ai" 
-                            id="ai" 
-                            className="mt-1"
+                          <input
+                            type="radio"
+                            id="ai"
                             name="processingMethod"
+                            value="ai"
                             checked={field.value === "ai"}
-                            onChange={(e) => field.onChange(e.target.value)}
+                            onChange={() => field.onChange("ai")}
+                            className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                           />
                           <Label htmlFor="ai" className="flex-1 cursor-pointer" data-testid="radio-ai">
                             <div className="font-medium">AI Extraction</div>
@@ -205,7 +207,7 @@ export default function UploadPage() {
                             </div>
                           </Label>
                         </div>
-                      </RadioGroup>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
