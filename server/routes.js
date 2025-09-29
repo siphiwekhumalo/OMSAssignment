@@ -58,6 +58,9 @@ export async function registerRoutes(app) {
       const { firstName, lastName, dateOfBirth, processingMethod } = validationResult.data;
       const file = req.file;
       
+      console.log('Processing method received:', processingMethod, typeof processingMethod);
+      console.log('Request body:', req.body);
+      
       const startTime = Date.now();
       
       try {
