@@ -175,7 +175,7 @@ export default function UploadPage() {
                       <RadioGroup
                         name="processingMethod"
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                         className="space-y-3"
                       >
                         <div className="flex items-start space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-accent transition-colors">

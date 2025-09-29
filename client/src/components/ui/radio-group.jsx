@@ -3,9 +3,10 @@ import { cn } from "@/lib/utils";
 
 const RadioGroupContext = createContext({});
 
-export const RadioGroup = forwardRef(({ className, onValueChange, defaultValue, name, ...props }, ref) => {
+export const RadioGroup = forwardRef(({ className, onValueChange, defaultValue, value, name, ...props }, ref) => {
+  const currentValue = value !== undefined ? value : defaultValue;
   return (
-    <RadioGroupContext.Provider value={{ onValueChange, value: defaultValue, name }}>
+    <RadioGroupContext.Provider value={{ onValueChange, value: currentValue, name }}>
       <div
         className={cn("grid gap-2", className)}
         {...props}
@@ -18,7 +19,7 @@ RadioGroup.displayName = "RadioGroup";
 
 export const RadioGroupItem = forwardRef(({ className, children, value, ...props }, ref) => {
   const context = useContext(RadioGroupContext) || {};
-  const { onValueChange, name } = context;
+  const { onValueChange, name, value: groupValue } = context;
   
   return (
     <input
@@ -30,6 +31,7 @@ export const RadioGroupItem = forwardRef(({ className, children, value, ...props
       ref={ref}
       name={name}
       value={value}
+      checked={groupValue === value}
       onChange={(e) => {
         if (e.target && e.target.value !== undefined && onValueChange) {
           onValueChange(e.target.value);
