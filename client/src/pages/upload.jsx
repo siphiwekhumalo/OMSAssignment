@@ -180,7 +180,11 @@ export default function UploadPage() {
                             name="processingMethod"
                             value="standard"
                             checked={field.value === "standard"}
-                            onChange={() => field.onChange("standard")}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                field.onChange("standard");
+                              }
+                            }}
                             className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                           />
                           <Label htmlFor="standard" className="flex-1 cursor-pointer" data-testid="radio-standard">
@@ -197,7 +201,11 @@ export default function UploadPage() {
                             name="processingMethod"
                             value="ai"
                             checked={field.value === "ai"}
-                            onChange={() => field.onChange("ai")}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                field.onChange("ai");
+                              }
+                            }}
                             className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                           />
                           <Label htmlFor="ai" className="flex-1 cursor-pointer" data-testid="radio-ai">
