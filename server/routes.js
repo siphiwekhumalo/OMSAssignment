@@ -298,6 +298,15 @@ export async function registerRoutes(app) {
     }
   });
 
+  // Health check endpoint for Docker and monitoring
+  app.get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      service: 'document-processing-app'
+    });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
