@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ArrowRight, Cog } from "lucide-react";
+import { ArrowRight, Cog, AlertCircle, CheckCircle2 } from "lucide-react";
 import FileUpload from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { processDocumentRequestSchema } from "@shared/schema";
 
@@ -19,6 +20,8 @@ export default function UploadPage() {
   const { toast } = useToast();
   const [selectedFile, setSelectedFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [fileError, setFileError] = useState(null);
 
   const form = useForm({
     resolver: zodResolver(processDocumentRequestSchema),
@@ -32,6 +35,10 @@ export default function UploadPage() {
 
   const processMutation = useMutation({
     mutationFn: async (data) => {
+      // Clear previous errors
+      setSubmitError(null);
+      setFileError(null);
+      
       const formData = new FormData();
       formData.append("file", data.file);
       formData.append("firstName", data.firstName);
@@ -46,7 +53,14 @@ export default function UploadPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to process document");
+        
+        // Create detailed error object
+        const error = new Error(errorData.error || errorData.message || "Failed to process document");
+        error.details = errorData.details;
+        error.field = errorData.field;
+        error.statusCode = response.status;
+        
+        throw error;
       }
 
       return response.json();
@@ -54,8 +68,8 @@ export default function UploadPage() {
     onSuccess: (data) => {
       setIsProcessing(false);
       toast({
-        title: "Document processed successfully",
-        description: "View your results on the results page.",
+        title: "Document processed successfully!",
+        description: "Redirecting to results page...",
       });
       // Store result in sessionStorage for display
       sessionStorage.setItem("lastProcessingResult", JSON.stringify(data));
@@ -63,21 +77,79 @@ export default function UploadPage() {
     },
     onError: (error) => {
       setIsProcessing(false);
+      console.error("Processing error:", error);
+      
+      // Handle different types of errors with specific messages
+      let errorMessage = error.message;
+      
+      // Handle field-specific errors
+      if (error.field) {
+        form.setError(error.field, { 
+          type: "server",
+          message: errorMessage 
+        });
+      } else if (error.message.includes("file") || error.message.includes("File") || 
+                 error.message.includes("upload") || error.message.includes("Upload")) {
+        setFileError(errorMessage);
+      } else {
+        setSubmitError({
+          message: errorMessage,
+          details: error.details,
+          statusCode: error.statusCode
+        });
+      }
+      
       toast({
         title: "Processing failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data) => {
+    // Clear previous errors
+    setSubmitError(null);
+    setFileError(null);
+    
+    // Validate file selection
     if (!selectedFile) {
+      setFileError("Please select a file to process");
       toast({
         title: "File required",
         description: "Please select a file to process.",
         variant: "destructive",
       });
+      return;
+    }
+
+    // Client-side file validation
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    
+    if (selectedFile.size > maxSize) {
+      setFileError("File is too large. Please select a file smaller than 10MB.");
+      toast({
+        title: "File too large",
+        description: "Please select a file smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setFileError("Invalid file type. Please select a PDF, JPG, JPEG, or PNG file.");
+      toast({
+        title: "Invalid file type",
+        description: "Please select a PDF, JPG, JPEG, or PNG file.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Additional filename validation
+    if (selectedFile.name.length > 255) {
+      setFileError("Filename is too long. Please rename your file to be shorter than 255 characters.");
       return;
     }
 
@@ -99,6 +171,28 @@ export default function UploadPage() {
               Upload a PDF or image file to extract text using standard or AI-powered methods
             </p>
           </div>
+
+          {/* Error Display */}
+          {submitError && (
+            <Alert className="mb-6" variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>{submitError.message}</strong>
+                {submitError.details && (
+                  <div className="mt-1 text-sm opacity-90">
+                    {submitError.details}
+                  </div>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {fileError && (
+            <Alert className="mb-6" variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{fileError}</AlertDescription>
+            </Alert>
+          )}
 
           <Form {...form} onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* File Upload Section */}
@@ -203,6 +297,11 @@ export default function UploadPage() {
                     </Label>
                   </div>
                 </div>
+                {form.formState.errors.processingMethod && (
+                  <p className="text-sm text-destructive mt-2">
+                    {form.formState.errors.processingMethod.message}
+                  </p>
+                )}
               </div>
 
               {/* Submit Button */}

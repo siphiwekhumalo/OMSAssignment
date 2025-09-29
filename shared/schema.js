@@ -36,9 +36,62 @@ export const insertProcessedDocumentSchema = createInsertSchema(processedDocumen
   createdAt: true,
 });
 
+/**
+ * Schema for document processing request validation
+ * Provides comprehensive validation for all form inputs with detailed error messages
+ */
 export const processDocumentRequestSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
-  processingMethod: z.enum(["standard", "ai"]),
+  // First name validation - required, 2-50 characters, letters and spaces only
+  firstName: z.string()
+    .min(1, "First name is required")
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name cannot exceed 50 characters")
+    .regex(/^[a-zA-Z\s'-]+$/, "First name can only contain letters, spaces, hyphens and apostrophes"),
+    
+  // Last name validation - required, 2-50 characters, letters and spaces only  
+  lastName: z.string()
+    .min(1, "Last name is required")
+    .min(2, "Last name must be at least 2 characters")
+    .max(50, "Last name cannot exceed 50 characters")
+    .regex(/^[a-zA-Z\s'-]+$/, "Last name can only contain letters, spaces, hyphens and apostrophes"),
+    
+  // Date of birth validation - required, valid date, reasonable age range
+  dateOfBirth: z.string()
+    .min(1, "Date of birth is required")
+    .refine((date) => {
+      const birthDate = new Date(date);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      
+      // Check if it's a valid date
+      if (isNaN(birthDate.getTime())) {
+        return false;
+      }
+      
+      // Check reasonable age range (5-120 years old)
+      return age >= 5 && age <= 120 && birthDate <= today;
+    }, "Please enter a valid date of birth (must be between 5-120 years old)"),
+    
+  // Processing method validation - must be one of the allowed methods
+  processingMethod: z.enum(["standard", "ai"], {
+    errorMap: () => ({ message: "Please select a processing method (Standard or AI Extraction)" })
+  }),
+});
+
+/**
+ * File validation schema for document uploads
+ * Validates file type, size, and other constraints
+ */
+export const fileValidationSchema = z.object({
+  mimetype: z.string()
+    .refine(
+      (type) => ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'].includes(type),
+      "Only PDF, JPG, JPEG, and PNG files are allowed"
+    ),
+  size: z.number()
+    .max(10 * 1024 * 1024, "File size cannot exceed 10MB")
+    .min(1, "File cannot be empty"),
+  originalname: z.string()
+    .min(1, "File must have a name")
+    .max(255, "Filename cannot exceed 255 characters")
 });

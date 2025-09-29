@@ -149,90 +149,104 @@ export default function ResultsPage() {
           </CardContent>
         </Card>
 
-        {/* Results Display */}
-        {!isAiMethod ? (
-          /* Standard Method Only */
+        {/* Results Display - Always Show Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Standard Extraction Results */}
           <Card>
             <CardContent className="p-6">
               <h3 className="text-xl font-semibold mb-4 flex items-center">
-                <FileText className="h-6 w-6 text-primary mr-2" />
-                Extracted Text
+                <Cog className="h-6 w-6 text-muted-foreground mr-2" />
+                Standard Extraction
+                {result.processingMethod === "standard" && (
+                  <span className="ml-2 px-2 py-1 bg-primary text-primary-foreground text-xs rounded">
+                    Primary Method
+                  </span>
+                )}
               </h3>
-              <div className="bg-muted p-4 rounded-lg max-h-96 overflow-y-auto">
-                <pre className="whitespace-pre-wrap text-sm font-mono" data-testid="text-standard-extracted">
-                  {result.standardExtractedText || "No text extracted"}
-                </pre>
+              <div className="space-y-4">
+                <div className="bg-muted p-4 rounded-lg max-h-80 overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-sm font-mono" data-testid="text-standard-extraction">
+                    {result.standardExtractedText || "No text extracted"}
+                  </pre>
+                </div>
+                <div className="text-xs text-muted-foreground flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Method: Tesseract.js + pdfjs-dist
+                  </div>
+                  <div>
+                    Characters: {(result.standardExtractedText || "").length}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
-        ) : (
-          /* AI Method - Side by Side */
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Standard Extraction Results */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4 flex items-center">
-                  <Cog className="h-6 w-6 text-muted-foreground mr-2" />
-                  Standard Extraction
-                </h3>
-                <div className="space-y-4">
-                  <div className="bg-muted p-4 rounded-lg max-h-80 overflow-y-auto">
-                    <pre className="whitespace-pre-wrap text-sm font-mono" data-testid="text-standard-comparison">
-                      {result.standardExtractedText || "No text extracted"}
+
+          {/* AI Extraction Results */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-semibold mb-4 flex items-center">
+                <Brain className="h-6 w-6 text-primary mr-2" />
+                AI Extraction
+                {result.processingMethod === "ai" && (
+                  <span className="ml-2 px-2 py-1 bg-primary text-primary-foreground text-xs rounded">
+                    Primary Method
+                  </span>
+                )}
+              </h3>
+              <div className="space-y-4">
+                {/* Error State */}
+                {result.aiExtractedData?.errorOccurred && (
+                  <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm">
+                    <div className="font-medium">AI Extraction Error</div>
+                    <div className="text-xs mt-1">
+                      {result.aiExtractedData.structuredData?.reason || "AI service unavailable"}
+                    </div>
+                  </div>
+                )}
+
+                {/* Structured Data */}
+                {result.aiExtractedData?.structuredData && !result.aiExtractedData.errorOccurred && Object.keys(result.aiExtractedData.structuredData).length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm">Structured Information</h4>
+                    <div className="space-y-2" data-testid="ai-structured-data">
+                      {Object.entries(result.aiExtractedData.structuredData).map(([key, value]) => (
+                        <div key={key} className="flex justify-between py-2 px-3 bg-accent rounded text-sm">
+                          <span className="font-medium capitalize">
+                            {key.replace(/([A-Z])/g, ' $1').trim()}:
+                          </span>
+                          <span className="text-right">{String(value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Raw Text */}
+                <div>
+                  <h4 className="font-medium text-sm mb-2">
+                    {result.aiExtractedData?.errorOccurred ? "Fallback Text (Standard)" : "AI Extracted Text"}
+                  </h4>
+                  <div className="bg-muted p-3 rounded-lg max-h-40 overflow-y-auto">
+                    <pre className="whitespace-pre-wrap text-xs font-mono" data-testid="text-ai-raw">
+                      {result.aiExtractedData?.rawText || result.rawExtractedText || "No text extracted"}
                     </pre>
                   </div>
-                  <div className="text-xs text-muted-foreground flex items-center">
-                    <Clock className="h-3 w-3 mr-1" />
-                    Processing time: {formatProcessingTime(result.processingTime)}
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* AI Extraction Results */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4 flex items-center">
-                  <Brain className="h-6 w-6 text-primary mr-2" />
-                  AI Extraction
-                </h3>
-                <div className="space-y-4">
-                  {/* Structured Data */}
-                  {result.aiExtractedData?.structuredData && Object.keys(result.aiExtractedData.structuredData).length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">Structured Information</h4>
-                      <div className="space-y-2" data-testid="ai-structured-data">
-                        {Object.entries(result.aiExtractedData.structuredData).map(([key, value]) => (
-                          <div key={key} className="flex justify-between py-2 px-3 bg-accent rounded text-sm">
-                            <span className="font-medium capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}:
-                            </span>
-                            <span>{String(value)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Raw Text */}
+                <div className="text-xs text-muted-foreground flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Method: OpenAI GPT-5
+                  </div>
                   <div>
-                    <h4 className="font-medium text-sm mb-2">Raw Extracted Text</h4>
-                    <div className="bg-muted p-3 rounded-lg max-h-40 overflow-y-auto">
-                      <pre className="whitespace-pre-wrap text-xs font-mono" data-testid="text-ai-raw">
-                        {result.aiExtractedData?.rawText || result.rawExtractedText || "No text extracted"}
-                      </pre>
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-muted-foreground flex items-center">
-                    <Clock className="h-3 w-3 mr-1" />
-                    Processing time: {formatProcessingTime(result.processingTime)}
+                    Characters: {(result.aiExtractedData?.rawText || result.rawExtractedText || "").length}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Action Buttons */}
         <Card>
